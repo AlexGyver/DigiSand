@@ -54,7 +54,7 @@ void onSandEmpty() {
 }
 
 // =====================================
-bool emptyFlag = 0;
+bool emptyFlag = 1;
 bool checkBound(int8_t x, int8_t y) {
     if (y >= 8 && x < 8) return 0;
     if (y < 8 && x >= 8) return 0;
