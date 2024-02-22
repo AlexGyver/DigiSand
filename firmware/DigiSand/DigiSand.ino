@@ -44,6 +44,17 @@ Sand<BOX_W, BOX_H> box;
 #include "Timer.h"
 Timer fall_tmr, disp_tmr;
 
+// ============== ВАШ КОД ==============
+// функция вызывается при каждом "проталкивании" песчинки
+void onSandPush() {
+}
+
+// функция вызывается, когда песок закончился
+void onSandEmpty() {
+}
+
+// =====================================
+bool emptyFlag = 0;
 bool checkBound(int8_t x, int8_t y) {
     if (y >= 8 && x < 8) return 0;
     if (y < 8 && x >= 8) return 0;
@@ -130,7 +141,7 @@ void buttons() {
 
 void step() {
     uint16_t prd = 255 - mpu.getMag();
-    prd = constrain(prd, 15, 100);
+    prd = constrain(prd, 15, 90);
     if (mpu.update(prd)) {
         mtrx.clear();
         box.step(mpu.getAngle() + 45);
@@ -140,13 +151,14 @@ void step() {
 
 void fall() {
     if (fall_tmr) {
+        bool pushed = 0;
         if (mpu.getDir() > 0) {
             if (box.buf.get(7, 7) && !box.buf.get(8, 8)) {
                 box.buf.set(7, 7, 0);
                 box.buf.set(8, 8, 1);
                 box.setCallback(7, 7, 0);
                 box.setCallback(8, 8, 1);
-                mtrx.update();
+                pushed = 1;
             }
         } else {
             if (box.buf.get(8, 8) && !box.buf.get(7, 7)) {
@@ -154,7 +166,18 @@ void fall() {
                 box.buf.set(7, 7, 1);
                 box.setCallback(8, 8, 0);
                 box.setCallback(7, 7, 1);
-                mtrx.update();
+                pushed = 1;
+            }
+        }
+
+        if (pushed) {
+            emptyFlag = 0;
+            mtrx.update();
+            onSandPush();
+        } else {
+            if (!emptyFlag) {
+                emptyFlag = 1;
+                onSandEmpty();
             }
         }
     }
