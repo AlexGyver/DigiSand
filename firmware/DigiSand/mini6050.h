@@ -42,7 +42,7 @@ class Mini6050 {
                 raw[i] = val;
             }
 
-            int16_t magr = getDir(dirz) * 255L / 16000L;
+            int magr = getDir(dirz) * 255L / 16000L;
             if (magr < 0) magr = -magr;
             mag = 255 - min(magr, 255);
 
