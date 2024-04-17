@@ -1,22 +1,24 @@
 #include "pitches.h"
 
-// V trave sidel kuznechik - 1
+// V trave sidel kuznechik - 1 - FIXED
 const uint16_t melody1[][2] PROGMEM = {
-      {NOTE_A4, 250},	{ NOTE_E4, 250},	{ NOTE_A4, 250},	{ NOTE_E4, 250},	{ NOTE_A4, 250},	{ NOTE_GS4, 250},	{ NOTE_GS4, 250},	{0, 150},	{NOTE_GS4, 250},	{ NOTE_E4, 250},	
-      { NOTE_GS4, 250},	{ NOTE_E4, 250},	{ NOTE_GS4, 250},	{ NOTE_A4, 250},	{ NOTE_A4, 250},	{0, 150},	{NOTE_A4, 250},	{ NOTE_E4, 250},	{ NOTE_A4, 250},	{ NOTE_E4, 250},	
-      { NOTE_A4, 250},	{ NOTE_GS4, 250},	{ NOTE_GS4, 250},	{0, 150},	{NOTE_GS4, 250},	{ NOTE_E4, 250},	{ NOTE_GS4, 250},	{ NOTE_E4, 250},	{ NOTE_GS4, 250},	{ NOTE_A4, 350},	
-      {0, 150},	{NOTE_A4, 250},	{ NOTE_B4, 250},	{ NOTE_B4, 200},	{ NOTE_B4, 200},	{ NOTE_B4, 250},	{ NOTE_B4, 250},	{ NOTE_C5, 250},	{ NOTE_C5, 250},	{NOTE_C5, 200},	
-      { NOTE_C5, 200},	{0, 100},	{NOTE_C5, 250},	{ NOTE_C5, 250},	{ NOTE_B4, 250},	{ NOTE_A4, 250},	{ NOTE_GS4, 250},	{ NOTE_A4, 250},	{ NOTE_A4, 350},	{0, 150},	
-      {NOTE_A4, 250},	{ NOTE_B4, 250},	{ NOTE_B4, 200},	{ NOTE_B4, 200},	{ NOTE_B4, 250},	{ NOTE_B4, 250},	{ NOTE_C5, 250},	{ NOTE_C5, 250},	{NOTE_C5, 200},	{ NOTE_C5, 200},	
-      {0, 100},	{ NOTE_C5, 250},	{ NOTE_C5, 250},	{ NOTE_B4, 250},	{ NOTE_A4, 250},	{ NOTE_GS4, 250},	{ NOTE_A4, 250},	{ NOTE_A4, 350},	{0, 150}
+      {NOTE_A4, 300},	{ NOTE_E4, 150},	{0, 150}, { NOTE_A4, 300},	{ NOTE_E4, 150},{0, 150}, { NOTE_A4, 300},	{ NOTE_GS4, 150},	{0, 150}, { NOTE_GS4, 300},	{0, 300},	
+      {NOTE_GS4, 300},{ NOTE_E4, 150},	{0, 150}, { NOTE_GS4, 300},	{ NOTE_E4, 150},{0, 150}, { NOTE_GS4, 150},	{0, 150}, { NOTE_A4, 150},	{0, 150}, { NOTE_A4, 300},	{0, 300},	
+      {NOTE_A4, 300},	{ NOTE_E4, 150},	{0, 150}, { NOTE_A4, 300},	{ NOTE_E4, 150},{0, 150}, { NOTE_A4, 300},	{ NOTE_GS4, 150},	{0, 150}, { NOTE_GS4, 300},	{0, 300},	
+      {NOTE_GS4, 300},{ NOTE_E4, 150},	{0, 150}, { NOTE_GS4, 300},	{ NOTE_E4, 150},{0, 150}, { NOTE_GS4, 150},	{0, 150}, { NOTE_A4, 750}, {0, 150},	
+      {NOTE_A4, 300},	{NOTE_B4, 150},	{0, 150}, {NOTE_B4, 140}, {0, 10},	{NOTE_B4, 140}, {0, 10},	{NOTE_B4, 150}, {0, 150},	
+      {NOTE_B4, 300},	{NOTE_C5, 150},	{0, 150}, {NOTE_C5, 140}, {0, 10},	{NOTE_C5, 140}, {0, 10},	{NOTE_C5, 150}, {0, 150},
+      {NOTE_C5, 150},	{0, 150}, {NOTE_C5, 300},	{NOTE_B4, 150},	{0, 150}, {NOTE_A4, 300},	{NOTE_GS4, 150}, {0, 150}, {NOTE_A4, 150}, {0, 150}, {NOTE_A4, 300},	{0, 300},	
+      {NOTE_A4, 300},	{NOTE_B4, 150},	{0, 150}, {NOTE_B4, 140}, {0, 10},	{NOTE_B4, 140}, {0, 10},	{NOTE_B4, 150}, {0, 150},	
+      {NOTE_B4, 300},	{NOTE_C5, 150},	{0, 150}, {NOTE_C5, 140}, {0, 10},	{NOTE_C5, 140}, {0, 10},	{NOTE_C5, 150}, {0, 150},
+      {NOTE_C5, 150},	{0, 150}, {NOTE_C5, 300},	{NOTE_B4, 150},	{0, 150}, {NOTE_A4, 300},	{NOTE_GS4, 150}, {0, 150}, {NOTE_A4, 600},	
 };
 
-// Crazy Frog - 2
+// Crazy Frog - 2 - FIXED
 const uint16_t melody2[][2] PROGMEM = {
-      {NOTE_D4, 125},	{0, 125},	{NOTE_F4, 166},	{NOTE_D4, 62},	{0, 62},	{NOTE_D4, 16},	{NOTE_G4, 125},	{NOTE_D4, 125},	{NOTE_C4, 125},	{NOTE_D4, 125},	
-      {0, 125},	{NOTE_A4, 166},	{NOTE_D4, 62},	{0, 62},	{NOTE_D4, 62},	{NOTE_AS4, 125},	{NOTE_A4, 125},	{NOTE_F4, 125},	{NOTE_D4, 125},	{NOTE_A4, 125},	
-      {NOTE_D5, 125},	{NOTE_D4, 62},	{NOTE_C4, 62},	{0, 62},	{NOTE_C4, 62},	{NOTE_A3, 125},	{NOTE_E4, 125},	{NOTE_D4, 500},	{0, 125},	{NOTE_D4 , 250},	
-      {NOTE_D4, 250}
+      {NOTE_D4, 450},	{0, 150},	{NOTE_F4, 300},	{0, 150}, {NOTE_D4, 150},	{0, 150},	{NOTE_D4, 150},	{NOTE_G4, 150},	{0, 150}, {NOTE_D4, 150}, {0, 150}, {NOTE_C4, 150},	{0, 150},
+      {NOTE_D4, 450},	{0, 150},	{NOTE_A4, 300},	{0, 150}, {NOTE_D4, 150},	{0, 150},	{NOTE_D4, 150},	{NOTE_AS4, 150}, {0, 150}, {NOTE_A4, 150}, {0, 150}, {NOTE_F4, 150}, {0, 150}, 	
+      {NOTE_D4, 300},	{NOTE_A4, 150},	{0, 150}, {NOTE_D5, 150}, {0, 150}, {NOTE_D4, 150},	{NOTE_C4, 150},	{0, 150},	{NOTE_C4, 150},	{NOTE_A3, 150},	{0, 150}, {NOTE_E4, 300},	{NOTE_D4, 450}
 };
 
 // Mario - 3

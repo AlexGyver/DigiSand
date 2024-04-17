@@ -14,7 +14,7 @@
 #define MaxMelody 4 // число имеющихся мелодий (для корректной работы меню)
 
 #define battery_min 3000     // минимальный уровень заряда батареи для отображения
-#define battery_max 4200     // максимальный уровень заряда батареи для отображения
+#define battery_max 3900     // максимальный уровень заряда батареи для отображения
 
 // Структура конфигурации для хранения в EEPROM
 struct Data {
@@ -140,7 +140,14 @@ void setup() {
   #endif
 
   voltage = readVcc();         // считать напряжение питания
-  //Serial.println(voltage);
+  // Serial.println(voltage);
+  // printDig(&mtrx, 0, 1, voltage / 1000);
+  // printDig(&mtrx, 4, 1, (voltage % 1000)/100);
+  // printDig(&mtrx, 8 + 0, 1, (voltage % 100) / 10);
+  // printDig(&mtrx, 8 + 4, 1, (voltage % 100) % 10);
+  // delay(2000);
+  // mtrx.update();
+
   if(voltage <= battery_min) onBatteryEmpty();
   voltage = map(voltage, battery_min, battery_max, 0, 99);
   voltage = constrain(voltage, 0, 99);
@@ -319,14 +326,15 @@ void buttons() {
 
     // останавливаем проигрывание мелодии при нажатии на любую кнопку
     if (up.click()) isMelodyPlaying() ? StopMelody() : changeTime(1);
-    if (up.step(0)) changeTime(10);
-    if (up.step(1)) changeTime(10);
+    if (up.step()) changeTime(10);
+    if (up.hold()) changeTime(10);
 
     // останавливаем проигрывание мелодии при нажатии на любую кнопку
     if (down.click()) isMelodyPlaying() ? StopMelody() : changeTime(-1);
-    if (down.step(0)) changeTime(-10);
-    if (down.step(1)) changeTime(-10);
+    if (down.step()) changeTime(-10);
+    if (down.hold()) changeTime(-10);
   } else {
+    if (dbl.click()) returnFromMenu();
     if (up.hold()) enterMenu(inMenu+1);
     if (down.hold()) enterMenu(inMenu-1);
     if (up.click()) changeMenuParam(inMenu,1);
