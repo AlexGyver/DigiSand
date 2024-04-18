@@ -50,11 +50,29 @@ const uint16_t melody4[][2] PROGMEM = {
   {NOTE_B7, 40}, {0, 40}, {NOTE_B7, 40}, {0, 40}, {NOTE_B7, 40}, {0, 40}, {NOTE_B7, 40}, {0, 40},
 };
 
+// Ka by nebylo zimy - 5
+const uint16_t melody5[][2] PROGMEM = {
+  {NOTE_B3,200}, {NOTE_B3,200}, {NOTE_B4,300}, {NOTE_FS4,100},
+  {NOTE_A4,200}, {NOTE_G4,200}, {NOTE_E4,400}, {0,25},
+  {NOTE_D4,200}, {NOTE_D4,200}, {NOTE_D5,300}, {NOTE_C5,100}, {NOTE_C5,200},{NOTE_B4,200},{0,400},
+  {NOTE_D5,200},{NOTE_C5,200}, {NOTE_A4,200},{NOTE_FS4,200}, {NOTE_C5,200},{NOTE_B4,200},{NOTE_B4,400},
+  {NOTE_B3,200}, {NOTE_B3,200}, {NOTE_B4,300}, {NOTE_A4,100},{NOTE_A4,200}, {NOTE_G4,200}, {0,400},
+  {NOTE_B3,200}, {NOTE_B3,200}, {NOTE_B4,300}, {NOTE_FS4,100},
+  {NOTE_A4,200}, {NOTE_G4,200}, {NOTE_E4,400}, {PAUZA,25},
+  {NOTE_D4,200}, {NOTE_D4,200}, {NOTE_D5,300}, {NOTE_C5,100}, {NOTE_C5,200},{NOTE_B4,200},{PAUZA,200},
+  {NOTE_E5,400},{NOTE_C5,200}, {NOTE_A4,200}, {NOTE_FS4,200}, {NOTE_C5,200},{NOTE_B4,200},{NOTE_B4,400},{PAUZA,25},
+  {NOTE_B3,200}, {NOTE_B3,200}, {NOTE_B4,300}, {NOTE_A4,100},{NOTE_A4,200}, {NOTE_G4,200}, {PAUZA,200},
+  {NOTE_E5,400},{NOTE_C5,200}, {NOTE_A4,200}, {NOTE_FS4,200}, {NOTE_C5,200},{NOTE_B4,200},{NOTE_B4,400},{PAUZA,25},
+  {NOTE_B3,200}, {NOTE_B3,200}, {NOTE_B4,300}, {NOTE_DS4,100},{NOTE_FS4,200}, {NOTE_E4,200}, {PAUZA,400}
+};
+
 // tick - 10
 const uint16_t sound1[][2] PROGMEM = {
   {NOTE_B5, 10}, {NOTE_B7, 10}
 };
-
+const uint16_t sound2[][2] PROGMEM = {
+  {NOTE_B0, 20}
+};
 
 unsigned long toneMillis;
 uint8_t tonePlaying = 0;
@@ -63,11 +81,12 @@ unsigned long melodyMillis;
 uint8_t melodyPlaying = 0;
 uint16_t melodyStep = 0;
 size_t melodySize = 0;
-uint8_t melodyTempo = 2;
-const uint8_t melodyOctave = 1; // октава воспроизведения мелодий (меняйте под себя аккуратно)
+float melodyTempo = 1;
+const float tempos[7] PROGMEM = { 1.4, 1.2, 1.1, 1, 0.9, 0.75, 0.6 };
+const uint8_t melodyOctave = 1; // октава воспроизведения мелодий (лучше не трогать)
 
 void SetTempo(uint8_t val) {
-  melodyTempo = val;
+  melodyTempo = pgm_read_float(&tempos[val - 1]);
 }
 
 void soundsTick() {
@@ -109,7 +128,7 @@ void RunMelodyNote() {
   } else {
     noTone(SOUND_PIN);
   }
-  melodyMillis = millis() + GetMelodyData(melodyPlaying,melodyStep,1) * melodyTempo;
+  melodyMillis = millis() + (float) GetMelodyData(melodyPlaying,melodyStep,1) * melodyTempo;
 }
 
 uint16_t GetMelodyData(uint8_t melody, uint8_t step, uint8_t item) {
@@ -123,9 +142,13 @@ uint16_t GetMelodyData(uint8_t melody, uint8_t step, uint8_t item) {
       return pgm_read_word(&melody3[step][item]);  
     case 4:
       return pgm_read_word(&melody4[step][item]); 
+    case 5:
+      return pgm_read_word(&melody5[step][item]); 
     // sounds
     case 10:
       return pgm_read_word(&sound1[step][item]);  
+    case 11:
+      return pgm_read_word(&sound2[step][item]);  
   } 
 }
 
@@ -140,9 +163,13 @@ uint8_t GetMelodySize(uint8_t melody) {
       return sizeof(melody3) / sizeof(melody3[0]);  
     case 4:
       return sizeof(melody4) / sizeof(melody4[0]); 
+    case 5:
+      return sizeof(melody5) / sizeof(melody5[0]); 
     // sounds
     case 10:
       return sizeof(sound1) / sizeof(sound1[0]); 
+    case 11:
+      return sizeof(sound2) / sizeof(sound2[0]); 
   }
 }
 
