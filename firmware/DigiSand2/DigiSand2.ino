@@ -364,13 +364,23 @@ void buttons() {
 
     // останавливаем проигрывание мелодии при нажатии на любую кнопку
     if (up.click()) isMelodyPlaying() ? StopMelody() : changeTime(1);
-    if (up.step()) changeTime(10);
-    if (up.hold()) changeTime(10);
+    if (up.step()) {
+      if (up.getSteps() > 10) {
+        changeTime(60);
+      } else {
+        changeTime(10);
+      }
+    }
 
     // останавливаем проигрывание мелодии при нажатии на любую кнопку
     if (down.click()) isMelodyPlaying() ? StopMelody() : changeTime(-1);
-    if (down.step()) changeTime(-10);
-    if (down.hold()) changeTime(-10);
+    if (down.step()) {
+      if (up.getSteps() > 10) {
+        changeTime(-10);
+      } else {
+        changeTime(-60);
+      }
+    }
   } else {
     if (dbl.click()) returnFromMenu();
     if (up.hold()) enterMenu(inMenu + 1);
