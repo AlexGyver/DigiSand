@@ -16,6 +16,9 @@
 #define battery_min 3000  // минимальный уровень заряда батареи для отображения 3000
 #define battery_max 3800  // максимальный уровень заряда батареи для отображения  3800
 
+uint8_t box1_parts = PART_AMOUNT;
+uint8_t box2_parts = PART_AMOUNT;
+
 // Структура конфигурации для хранения в EEPROM
 struct Data {
   int16_t sec = 60;  // время
@@ -65,21 +68,18 @@ void onSandPush() {
 #endif
 }
 
-// todo
-//    сложность в том, что событие onSandEnd должно срабатывать именно тогда, когда весь песок пересыпался
-//    с учётом возможных пауз из-за наклонов
-//    возможно, тут получится сделать таймер, который будет отсчитывать настроенные секунды, делать паузу когда нужно и автоматом обнуляться, когда весь песок пересыпется
-//    либо нужно отследить число частиц на втором экране
 // функция вызывается при завершении времени отведённого времени
-// void onSandEnd() {
-
-// }
+void onSandEnd() {
+#ifdef SOUND_PIN
+  if (data.mel > 0) PlayMelody(data.mel);
+#endif
+}
 
 // функция вызывается, когда песок перестал сыпаться
 // это происходит в том числе из-за крена часов, когда ещё не весь песок пересыпался
 void onSandStop() {
 #ifdef SOUND_PIN
-  if (data.mel > 0) PlayMelody(data.mel);
+  if (data.vol > 0) PlaySandStopTone();
 #endif
 }
 
@@ -128,10 +128,12 @@ void resetSand() {
   for (uint8_t n = 0; n < PART_AMOUNT; n++) {
     box.buf.set(n % 8, n / 8, 1);
   }
+  box1_parts = PART_AMOUNT;
+  box2_parts = 0;
 }
 
 void setup() {
-  //Serial.begin(115200);
+  //Serial.begin(9600);
   Wire.begin();
   mpu.begin();
   memory.begin(0, 'a');
@@ -153,8 +155,7 @@ void setup() {
   voltage = readVcc();  // считать напряжение питания
   // Serial.println(voltage);
   if (voltage <= battery_min) onBatteryEmpty();
-  showBattLevel(voltage);
-  delay(2000);  // время отображения заряда после включения
+  showBattLevel(voltage);  // время отображения заряда после включения настраивается внутри функции
 
   resetSand();
   fall_tmr.setInterval(data.sec * 1000ul / PART_AMOUNT);
@@ -182,8 +183,10 @@ void changeTime(int8_t dir) {
 void changeTempo(int8_t dir) {
   data.tmpo += dir;
   data.tmpo = constrain(data.tmpo, 1, 7);
+#ifdef SOUND_PIN
   SetTempo(data.tmpo);
   PlayMelody(data.mel);
+#endif
   memory.update();
 }
 
@@ -213,8 +216,10 @@ void changeVol(int8_t dir) {
 void changeMel(int8_t dir) {
   data.mel += dir;
   data.mel = constrain(data.mel, 0, MaxMelody);
+#ifdef SOUND_PIN
   if (data.mel) PlayMelody(data.mel);
   else StopMelody();
+#endif
   memory.update();
 }
 
@@ -298,6 +303,8 @@ void showBattLevel(long voltage) {
       printDig(&mtrx, 8 + 0, 1, level / 10);
       printDig(&mtrx, 8 + 4, 1, level % 10);
       mtrx.update();
+      delay(1500);
+      mtrx.clear();
       break;
     case 2:
       mtrx.clear();
@@ -306,7 +313,7 @@ void showBattLevel(long voltage) {
       printDig(&mtrx, 8 + 0, 1, (voltage % 100) / 10);
       printDig(&mtrx, 8 + 4, 1, (voltage % 100) % 10);
       mtrx.update();
-      delay(2000);
+      delay(1500);
       mtrx.clear();
       break;
   }
@@ -362,15 +369,33 @@ void buttons() {
     if (dbl.hold()) enterMenu(lastUsedMenu ? lastUsedMenu : 1);
     if (dbl.click()) resetSand();
 
-    // останавливаем проигрывание мелодии при нажатии на любую кнопку
+      // останавливаем проигрывание мелодии при нажатии на любую кнопку
+#ifdef SOUND_PIN
     if (up.click()) isMelodyPlaying() ? StopMelody() : changeTime(1);
-    if (up.step()) changeTime(10);
-    if (up.hold()) changeTime(10);
+#else
+    if (up.click()) changeTime(1);
+#endif
+    if (up.step()) {
+      if (up.getSteps() > 10) {
+        changeTime(60);
+      } else {
+        changeTime(10);
+      }
+    }
 
-    // останавливаем проигрывание мелодии при нажатии на любую кнопку
+// останавливаем проигрывание мелодии при нажатии на любую кнопку
+#ifdef SOUND_PIN
     if (down.click()) isMelodyPlaying() ? StopMelody() : changeTime(-1);
-    if (down.step()) changeTime(-10);
-    if (down.hold()) changeTime(-10);
+#else
+    if (up.click()) changeTime(-1);
+#endif
+    if (down.step()) {
+      if (up.getSteps() > 10) {
+        changeTime(-10);
+      } else {
+        changeTime(-60);
+      }
+    }
   } else {
     if (dbl.click()) returnFromMenu();
     if (up.hold()) enterMenu(inMenu + 1);
@@ -392,6 +417,7 @@ void step() {
 
 void fall() {
   if (fall_tmr) {
+    int8_t push_direction = 0;
     bool pushed = 0;
     if (mpu.getDir() > 0) {
       if (box.buf.get(7, 7) && !box.buf.get(8, 8)) {
@@ -400,6 +426,9 @@ void fall() {
         box.setCallback(7, 7, 0);
         box.setCallback(8, 8, 1);
         pushed = 1;
+        box1_parts--;
+        box2_parts++;
+        push_direction = 1;
       }
     } else {
       if (box.buf.get(8, 8) && !box.buf.get(7, 7)) {
@@ -408,20 +437,41 @@ void fall() {
         box.setCallback(8, 8, 0);
         box.setCallback(7, 7, 1);
         pushed = 1;
+        box1_parts++;
+        box2_parts--;
+        push_direction = -1;
       }
     }
 
     if (pushed) {
       runFlag = 0;
       mtrx.update();
-      onSandPush();
+      if (checkIfAllSandPushed(push_direction)) {
+        onSandEnd();
+      } else {
+        onSandPush();
+      }
     } else {
       if (!runFlag) {
         runFlag = 1;
-        onSandStop();
+        if (!checkIfAllSandPushed(push_direction)) onSandStop();
       }
     }
   }
+}
+
+bool checkIfAllSandPushed(int8_t dir) {
+  if (dir > 0 && box1_parts == 0 && box2_parts == PART_AMOUNT) {
+    // last part pushed forward
+    return true;
+  } else if (dir < 0 && box1_parts == PART_AMOUNT && box2_parts == 0) {
+    // last part pushed backward
+    return true;
+  } else if (dir == 0 && ((box1_parts == 0 && box2_parts == PART_AMOUNT) || (box1_parts == PART_AMOUNT && box2_parts == 0))) {
+    // sand stable
+    return true;
+  }
+  return false;
 }
 
 // Главный цикл
