@@ -133,7 +133,7 @@ void resetSand() {
 }
 
 void setup() {
-  Serial.begin(9600);
+  //Serial.begin(9600);
   Wire.begin();
   mpu.begin();
   memory.begin(0, 'a');
