@@ -5,13 +5,14 @@
 #define PART_AMOUNT 58  // общее число песчинок на поле
 #define BTN1_PIN 2
 #define BTN2_PIN 3
+#define BTN3_PIN 8
 #define CS_PIN 6
 #define DT_PIN 4
 #define CK_PIN 5
 #define SOUND_PIN 9
 
 #define MaxVolume 1  // максимальный уровень громкости эффектов
-#define MaxMelody 5  // число имеющихся мелодий (для корректной работы меню)
+#define MaxMelody 6  // число имеющихся мелодий (для корректной работы меню)
 
 #define battery_min 3000  // минимальный уровень заряда батареи для отображения 3000
 #define battery_max 3800  // максимальный уровень заряда батареи для отображения  3800
@@ -21,7 +22,7 @@ struct Data {
   int16_t sec = 60;  // время
   int8_t bri = 2;    // яркость
   int8_t vol = 1;    // громкость эффектов
-  int8_t mel = 1;    // мелодия окончания времени
+  int8_t mel = 6;    // мелодия окончания времени
   int8_t ani = 0;    // анимации окончания времени
   int8_t tmpo = 4;   // темп проигрывания мелодий
   int8_t bat = 1;
@@ -35,6 +36,7 @@ EEManager memory(data);
 #include <EncButton.h>
 Button up(BTN1_PIN);
 Button down(BTN2_PIN);
+Button menu(BTN3_PIN);
 VirtButton dbl;
 
 // matrix
@@ -356,11 +358,12 @@ void returnFromMenu() {
 void buttons() {
   up.tick();
   down.tick();
-  dbl.tick(up, down);
+  menu.tick();
+  //dbl.tick(up, down);
 
   if (!inMenu) {
-    if (dbl.hold()) enterMenu(lastUsedMenu ? lastUsedMenu : 1);
-    if (dbl.click()) resetSand();
+    if (menu.hold()) enterMenu(lastUsedMenu ? lastUsedMenu : 1);
+    if (menu.click()) isMelodyPlaying() ? StopMelody() : resetSand();
 
     // останавливаем проигрывание мелодии при нажатии на любую кнопку
     if (up.click()) isMelodyPlaying() ? StopMelody() : changeTime(1);
@@ -371,10 +374,11 @@ void buttons() {
     if (down.click()) isMelodyPlaying() ? StopMelody() : changeTime(-1);
     if (down.step()) changeTime(-10);
     if (down.hold()) changeTime(-10);
-  } else {
-    if (dbl.click()) returnFromMenu();
-    if (up.hold()) enterMenu(inMenu + 1);
-    if (down.hold()) enterMenu(inMenu - 1);
+  } 
+  else 
+  {
+    //if (menu.hold()) returnFromMenu();
+    if (menu.click()) enterMenu(inMenu + 1);  //if (down.hold() && down.click()) enterMenu(inMenu - 1);
     if (up.click()) changeMenuParam(inMenu, 1);
     if (down.click()) changeMenuParam(inMenu, -1);
   }
