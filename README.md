@@ -35,6 +35,16 @@
 Меню помнит последний использозванный пункт в течении 30 сек.
 Меню выключается через 5 сек бездействия.
 
+## Navigation menu
+### Buttons: Up, Menu, Down
+- Button Up -> Click -> +1 second to timer
+- Button UP -> Hold -> +10 seconds to timer
+- Button Menu -> Click -> Reset timer
+- Button Menu -> Hold -> Step into menu
+- Button Menu -> Click (In the menu) -> Change menu options
+- Button Down -> Click -> -1 seconds from timer
+- Button Down -> Hold -> -10 seconds from timer
+
 # Энергопотребление
 - *при максимальной яркости* - **200мА**
 - *при яркости 2* - **60мА**, во время проигрывания звука до 72мА
