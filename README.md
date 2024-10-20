@@ -61,6 +61,9 @@
 - спящий режим (отключать экраны и лишние обработчики, уходит в сон, просыпаться по прерыванию от датчика наклона)
 - добавить полноценную регулировку громкости, например на базе решения https://github.com/connornishijima/arduino-volume3
 
+# TODO
+- Standby when not in use, wake up on shake or press of any buttons.
+
 # Changelog
 
 - v1.3 - добавлен контроль заряда при включении
