@@ -18,7 +18,7 @@
 #define battery_max 3800 // максимальный уровень заряда батареи для отображения  3800
 
 // Структура конфигурации для хранения в EEPROM
-struct Data //TODO: BUG NOT READING THIS VALUES AT ALL!
+struct Data // TODO: BUG NOT READING THIS VALUES AT ALL!
 {
   int16_t sec = 60; // время
   int8_t bri = 1;   // яркость
@@ -30,8 +30,6 @@ struct Data //TODO: BUG NOT READING THIS VALUES AT ALL!
   int16_t standby_seconds = 5;
 };
 Data data;
-
-
 
 #include <EEManager.h>
 EEManager memory(data);
@@ -68,6 +66,7 @@ unsigned long voltage;      // напряжение аккумулятора
 float my_vcc_const = 1.080; // константа вольтметра
 
 bool isDisplayOn = 1;
+bool isTimerRunning = false;
 unsigned long lastStandbyTimestamp = 0;
 bool isStandbyTimerOn = 0;
 int16_t defaultStandbyWatchInSeconds = 10;
@@ -93,6 +92,7 @@ void onSandEnd()
 {
   if (isAllSandFallen())
   {
+    isTimerRunning = false;
     startStandbyWatch();
   }
 }
@@ -152,15 +152,18 @@ void setXY(int8_t x, int8_t y, bool value)
 
 void resetSand()
 {
-  setDisplayOn();
+    isTimerRunning = true;
+    Serial.println("Starting timer.");
 
-  box.buf.clear();
-  mtrx.clear();
-  mtrx.update();
-  for (uint8_t n = 0; n < PART_AMOUNT; n++)
-  {
-    box.buf.set(n % 8, n / 8, 1);
-  }
+    box.buf.clear();
+    mtrx.clear();
+    mtrx.update();
+    for (uint8_t n = 0; n < PART_AMOUNT; n++)
+    {
+      box.buf.set(n % 8, n / 8, 1);
+    }
+
+    stopStandbyWatch();
 }
 
 void changeTime(int8_t dir)
@@ -501,16 +504,22 @@ bool isAllSandFallen()
 
 void startStandbyWatch()
 {
-  lastStandbyTimestamp = millis();
-  isStandbyTimerOn = true;
-  Serial.println("Set last standby timestamp: " + String(lastStandbyTimestamp) + " Standby timer set to: " + String(isStandbyTimerOn) + ".");
+  if (!isStandbyTimerOn)
+  {
+    lastStandbyTimestamp = millis();
+    isStandbyTimerOn = true;
+    Serial.println("Set last standby timestamp: " + String(lastStandbyTimestamp) + " Standby timer set to: " + String(isStandbyTimerOn) + ".");
+  }
 }
 
 void stopStandbyWatch()
 {
-  lastStandbyTimestamp = 0;
-  isStandbyTimerOn = false;
-  Serial.println("Set last standby timestamp: " + String(lastStandbyTimestamp) + " Standby timer set to: " + String(isStandbyTimerOn) + ".");
+  if (isStandbyTimerOn)
+  {
+    lastStandbyTimestamp = 0;
+    isStandbyTimerOn = false;
+    Serial.println("Set last standby timestamp: " + String(lastStandbyTimestamp) + " Standby timer set to: " + String(isStandbyTimerOn) + ".");
+  }
 }
 
 void watchStandby()
@@ -522,16 +531,20 @@ void watchStandby()
     setDisplayOff();
   }
 
-  if(!mpu.isStable())
+  if (!mpu.isStable())
   {
-    startStandbyWatch();
+    if (!isTimerRunning)
+    {
+      startStandbyWatch();
+    }
+
     setDisplayOn();
   }
 }
 
 void setDisplayOn()
 {
-  if(!isDisplayOn)
+  if (!isDisplayOn)
   {
     Serial.println("Display on.");
     mtrx.clear();
@@ -542,7 +555,7 @@ void setDisplayOn()
 
 void setDisplayOff()
 {
-  if(isDisplayOn)
+  if (isDisplayOn)
   {
     Serial.println("Display off.");
     mtrx.clear();
@@ -554,6 +567,8 @@ void setDisplayOff()
 void setup()
 {
   Serial.begin(115200);
+  Serial.print("Setup");
+
   Wire.begin();
   mpu.begin();
   memory.begin(0, 'a');
@@ -581,9 +596,6 @@ void setup()
 
   resetSand();
   fall_tmr.setInterval(data.sec * 1000ul / PART_AMOUNT);
-
-  Serial.print("Standby seconds: ");
-  Serial.println(data.standby_seconds);
 }
 
 void loop()
