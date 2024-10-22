@@ -92,6 +92,8 @@ void onSandEnd()
 {
   if (isAllSandFallen())
   {
+    
+    showTime();
     isTimerRunning = false;
     startStandbyWatch();
   }
@@ -165,7 +167,7 @@ void resetSand()
 
   stopStandbyWatch();
 
-   showTime();
+  showTime();
 }
 
 void showTime()
