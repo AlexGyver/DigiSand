@@ -152,18 +152,42 @@ void setXY(int8_t x, int8_t y, bool value)
 
 void resetSand()
 {
-    isTimerRunning = true;
-    Serial.println("Starting timer.");
+  isTimerRunning = true;
+  Serial.println("Starting timer.");
 
-    box.buf.clear();
-    mtrx.clear();
-    mtrx.update();
-    for (uint8_t n = 0; n < PART_AMOUNT; n++)
-    {
-      box.buf.set(n % 8, n / 8, 1);
-    }
+  box.buf.clear();
+  mtrx.clear();
+  mtrx.update();
+  for (uint8_t n = 0; n < PART_AMOUNT; n++)
+  {
+    box.buf.set(n % 8, n / 8, 1);
+  }
 
-    stopStandbyWatch();
+  stopStandbyWatch();
+
+   showTime();
+}
+
+void showTime()
+{
+  mtrx.clear();
+
+  if (data.sec < 0)
+  {
+    data.sec = 0;
+  }
+
+  uint8_t min = data.sec / 60;
+  uint8_t sec = data.sec % 60;
+
+  printDig(&mtrx, 0, 1, min / 10);
+  printDig(&mtrx, 4, 1, min % 10);
+  printDig(&mtrx, 8 + 0, 1, sec / 10);
+  printDig(&mtrx, 8 + 4, 1, sec % 10);
+
+  mtrx.update();
+
+  disp_tmr.setTimeout(3000);
 }
 
 void changeTime(int8_t dir)
