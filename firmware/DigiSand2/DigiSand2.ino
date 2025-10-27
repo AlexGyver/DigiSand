@@ -71,6 +71,67 @@ unsigned long lastStandbyTimestamp = 0;
 bool isStandbyTimerOn = 0;
 int16_t defaultStandbyWatchInSeconds = 10;
 
+bool hasFlipped = false;
+
+enum MpuOrientation
+{
+  ROT_NONE,
+  ROT_Z_CW_90,  // board rotated 90° clockwise around +Z (top view)
+  ROT_Z_CCW_90, // board rotated 90° counter-clockwise around +Z
+  ROT_X_CW_90,  // +90° about +X (pitch forward)
+  ROT_X_CCW_90, // -90° about +X (pitch backward)
+  ROT_Y_CW_90,  // +90° about +Y (roll right)
+  ROT_Y_CCW_90  // -90° about +Y (roll left)
+};
+
+void setMpuOrientation(MpuOrientation o)
+{
+  switch (o)
+  {
+  case ROT_NONE:
+    mpu.setX({1, -1}); // X -> -Y
+    mpu.setY({2, 1});  // Y -> +Z
+    mpu.setZ({0, 1});  // Z -> +X
+    break;
+
+  case ROT_Z_CW_90:
+    mpu.setX({2, 1}); // X -> +Z
+    mpu.setY({1, 1}); // Y -> +Y
+    mpu.setZ({0, 1}); // Z -> +X
+    break;
+
+  case ROT_Z_CCW_90:
+    mpu.setX({2, -1}); // X -> -Z
+    mpu.setY({1, -1}); // Y -> -Y
+    mpu.setZ({0, 1});  // Z -> +X
+    break;
+
+  case ROT_X_CW_90:
+    mpu.setX({1, -1}); // X -> -Y
+    mpu.setY({0, 1});  // Y -> +X
+    mpu.setZ({2, -1}); // Z -> -Z
+    break;
+
+  case ROT_X_CCW_90:
+    mpu.setX({1, -1}); // X -> -Y
+    mpu.setY({0, -1}); // Y -> -X
+    mpu.setZ({2, 1});  // Z -> +Z
+    break;
+
+  case ROT_Y_CW_90:
+    mpu.setX({0, -1}); // X -> -X
+    mpu.setY({2, 1});  // Y -> +Z
+    mpu.setZ({1, -1}); // Z -> -Y
+    break;
+
+  case ROT_Y_CCW_90:
+    mpu.setX({0, 1}); // X -> +X
+    mpu.setY({2, 1}); // Y -> +Z
+    mpu.setZ({1, 1}); // Z -> +Y
+    break;
+  }
+}
+
 // ============== ВАШ КОД ==============
 // функция вызывается при каждом "проталкивании" песчинки
 void onSandPush()
@@ -92,10 +153,10 @@ void onSandEnd()
 {
   if (isAllSandFallen())
   {
-    
+
     showTime();
     isTimerRunning = false;
-    //startStandbyWatch();
+    // startStandbyWatch();
   }
 }
 
@@ -166,7 +227,7 @@ void resetSand()
     box.buf.set(n % 8, n / 8, 1);
   }
 
-  //stopStandbyWatch();
+  // stopStandbyWatch();
 
   showTime();
 }
@@ -495,7 +556,8 @@ void fall()
   if (fall_tmr)
   {
     bool pushed = 0;
-    if (mpu.getDir() > 0)
+    if (!hasFlipped)
+    // if (mpu.getDir() > 0)
     {
       if (box.buf.get(7, 7) && !box.buf.get(8, 8))
       {
@@ -538,22 +600,38 @@ void fall()
 
 bool isAllSandFallen()
 {
-  for (uint8_t y = 0; y < BOX_H; y++)
+  // When upside down, check if all particles are in the bottom (previous top)
+  if (!hasFlipped)
   {
-    for (uint8_t x = 0; x < BOX_W; x++)
+    for (uint8_t y = BOX_H / 2; y < BOX_H; y++)
     {
-      if (box.buf.get(x, y))
+      for (uint8_t x = 0; x < BOX_W; x++)
       {
-        // If there are still particles in the upper part of the box, sand hasn't finished falling
-        if (y < 8)
+        if (box.buf.get(x, y))
         {
           return false;
         }
       }
     }
-  }
 
-  Serial.println("All particles are in the lower part.");
+    // Serial.println("All particles have fallen to the bottom (falling up).");
+  }
+  else
+  {
+    // Check if particles are in the top (previous bottom)
+    for (uint8_t y = 0; y < BOX_H / 2; y++)
+    {
+      for (uint8_t x = 0; x < BOX_W; x++)
+      {
+        if (box.buf.get(x, y))
+        {
+          return false;
+        }
+      }
+    }
+
+    // Serial.println("All particles have fallen to the top (falling down).");
+  }
 
   return true;
 }
@@ -591,7 +669,7 @@ void watchStandby()
   {
     if (!isTimerRunning)
     {
-      //startStandbyWatch();
+      // startStandbyWatch();
     }
 
     setDisplayOn();
@@ -620,10 +698,16 @@ void setDisplayOff()
   }
 }
 
+void watchFlipSide()
+{
+  hasFlipped = mpu.getDir() == -1;
+  //Serial.println(hasFlipped ? F("Downside up") : F("Upside down"));
+}
+
 void setup()
 {
   Serial.begin(115200);
-  Serial.print("Setup");
+  Serial.println("Setup");
 
   Wire.begin();
   mpu.begin();
@@ -631,9 +715,17 @@ void setup()
   mtrx.begin();
   mtrx.setBright(data.bri);
 
-  mpu.setX({1, -1});
-  mpu.setY({2, 1});
-  mpu.setZ({0, 1});
+  setMpuOrientation(ROT_X_CW_90);
+
+  // Old code, new code above
+  // mpu.setX({1, -1});
+  // mpu.setY({2, 1});
+  // mpu.setZ({0, 1});
+
+  //New one says X_CW_90 but in reality it has been flipped Y CCW
+  //mpu.setX({1, -1});
+  //mpu.setY({0, 1}); 
+  //mpu.setZ({2, -1});
 
   box.attachBound(checkBound);
   box.attachSet(setXY);
@@ -662,7 +754,11 @@ void loop()
   soundsTick();
 #endif
   buttons();
-  //watchStandby();
+  // watchStandby();
+
+  watchFlipSide();
+
+  // Serial.println("MPU Ange: " + String(mpu.getAngle()));
 
   if (!disp_tmr.state())
   {

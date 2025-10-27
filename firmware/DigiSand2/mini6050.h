@@ -77,6 +77,17 @@ class Mini6050 {
       return abs(getAngle()) < 5;
     }
 
+    bool isUpsideDown() //We might not need that
+    {
+        return getDir() == -1; 
+    }
+
+    bool isUpsideDown2() //We might not need that
+    {
+        int16_t angle = abs(getAngle()); 
+        return (angle > 160 && angle < 200) || (angle > -160 && angle < -200); 
+    }
+
    private:
     uint16_t tmr;
     int16_t raw[3];
