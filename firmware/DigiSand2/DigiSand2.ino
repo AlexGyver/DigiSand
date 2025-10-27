@@ -3,13 +3,13 @@
 #include "print3x5.h"
 
 #define PART_AMOUNT 58 // общее число песчинок на поле
-#define BTN1_PIN 2
-#define BTN2_PIN 3
-#define BTN3_PIN 8
-#define CS_PIN 6
-#define DT_PIN 4
-#define CK_PIN 5
-#define SOUND_PIN 9
+#define BTN1_PIN 4
+#define BTN2_PIN 6
+#define BTN3_PIN 5
+#define CS_PIN 7
+#define DT_PIN 8
+#define CK_PIN 9
+#define SOUND_PIN 3
 
 #define MaxVolume 1 // максимальный уровень громкости эффектов
 #define MaxMelody 6 // число имеющихся мелодий (для корректной работы меню)
@@ -22,7 +22,7 @@ struct Data // TODO: BUG NOT READING THIS VALUES AT ALL!
 {
   int16_t sec = 60; // время
   int8_t bri = 1;   // яркость
-  int8_t vol = 1;   // громкость эффектов
+  int8_t vol = 0;   // громкость эффектов
   int8_t mel = 3;   // мелодия окончания времени
   int8_t ani = 0;   // анимации окончания времени
   int8_t tmpo = 4;  // темп проигрывания мелодий
