@@ -12,7 +12,7 @@
 #define SOUND_PIN 3
 
 #define MaxVolume 1 // максимальный уровень громкости эффектов
-#define MaxMelody 6 // число имеющихся мелодий (для корректной работы меню)
+#define MaxMelody 5 // число имеющихся мелодий (для корректной работы меню)
 
 #define battery_min 3000 // минимальный уровень заряда батареи для отображения 3000
 #define battery_max 3800 // максимальный уровень заряда батареи для отображения  3800
@@ -95,7 +95,7 @@ void onSandEnd()
     
     showTime();
     isTimerRunning = false;
-    startStandbyWatch();
+    //startStandbyWatch();
   }
 }
 
@@ -145,6 +145,7 @@ bool checkBound(int8_t x, int8_t y)
   }
   return (x >= 0 && y >= 0 && x < BOX_W && y < BOX_H);
 }
+
 void setXY(int8_t x, int8_t y, bool value)
 {
   if (y >= 8)
@@ -165,7 +166,7 @@ void resetSand()
     box.buf.set(n % 8, n / 8, 1);
   }
 
-  stopStandbyWatch();
+  //stopStandbyWatch();
 
   showTime();
 }
@@ -416,35 +417,64 @@ void buttons()
   if (!inMenu)
   {
     if (menu.hold())
+    {
       enterMenu(lastUsedMenu ? lastUsedMenu : 1);
+    }
+
     if (menu.click())
+    {
       isMelodyPlaying() ? StopMelody() : resetSand();
+    }
 
     // останавливаем проигрывание мелодии при нажатии на любую кнопку
     if (up.click())
+    {
       isMelodyPlaying() ? StopMelody() : changeTime(1);
+    }
+
     if (up.step())
+    {
       changeTime(10);
+    }
+
     if (up.hold())
+    {
       changeTime(10);
+    }
 
     // останавливаем проигрывание мелодии при нажатии на любую кнопку
     if (down.click())
+    {
       isMelodyPlaying() ? StopMelody() : changeTime(-1);
+    }
+
     if (down.step())
+    {
       changeTime(-10);
+    }
+
     if (down.hold())
+    {
       changeTime(-10);
+    }
   }
   else
   {
     // if (menu.hold()) returnFromMenu();
     if (menu.click())
+    {
       enterMenu(inMenu + 1); // if (down.hold() && down.click()) enterMenu(inMenu - 1);
+    }
+
     if (up.click())
+    {
       changeMenuParam(inMenu, 1);
+    }
+
     if (down.click())
+    {
       changeMenuParam(inMenu, -1);
+    }
   }
 }
 
@@ -561,7 +591,7 @@ void watchStandby()
   {
     if (!isTimerRunning)
     {
-      startStandbyWatch();
+      //startStandbyWatch();
     }
 
     setDisplayOn();
@@ -632,7 +662,7 @@ void loop()
   soundsTick();
 #endif
   buttons();
-  watchStandby();
+  //watchStandby();
 
   if (!disp_tmr.state())
   {
