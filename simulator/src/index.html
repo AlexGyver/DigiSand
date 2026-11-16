@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DigiSand board simulator</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --line:#272c36; --txt:#e6e8ee; --dim:#8a93a6; --acc:#ff5a3c; --ok:#41d18b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:17px; margin:0 12px 0 0; font-weight:650; }
+  header .sub { color:var(--dim); font-size:13px; }
+  .bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:auto; }
+  select, button { background:#20242d; color:var(--txt); border:1px solid #333a47; border-radius:7px; padding:6px 10px; font:inherit; cursor:pointer; }
+  button:hover, select:hover { border-color:#4a5263; }
+  main { display:grid; grid-template-columns: minmax(330px, 520px) minmax(320px, 1fr); gap:18px; padding:18px 20px; max-width:1240px; margin:0 auto; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); margin:0 0 10px; font-weight:600; }
+  #clock { width:100%; aspect-ratio:1/1; display:block; touch-action:none; cursor:grab; }
+  #clock:active { cursor:grabbing; }
+  .row { display:flex; gap:10px; align-items:center; margin:8px 0; flex-wrap:wrap; }
+  .row label { width:92px; color:var(--dim); }
+  .row input[type=range] { flex:1; min-width:140px; accent-color:var(--acc); }
+  .val { width:44px; text-align:right; font-variant-numeric:tabular-nums; }
+  .poses button { font-size:13px; padding:5px 9px; }
+  .btns { display:flex; gap:12px; justify-content:center; margin-top:10px; }
+  .hw { width:84px; height:84px; border-radius:50%; border:3px solid #3c4352; background:radial-gradient(circle at 40% 35%, #3b4150, #1d2028); color:var(--txt); font-weight:650; user-select:none; touch-action:none; }
+  .hw.down { background:radial-gradient(circle at 50% 55%, #2a2f39, #15171c); border-color:var(--acc); transform:translateY(2px); }
+  .hw small { display:block; font-weight:400; color:var(--dim); font-size:11px; }
+  .hint { color:var(--dim); font-size:12.5px; text-align:center; margin-top:8px; }
+  #boardview { position:relative; width:100%; max-width:440px; aspect-ratio:1/1; background:#14161a url('__BOARD__') center/contain no-repeat; border-radius:8px; margin:0 auto; }
+  .hot { position:absolute; transform:translate(-50%,-50%); padding:1px 5px; font-size:10.5px; border-radius:5px; background:rgba(255,90,60,.88); border:0; color:#fff; font-weight:650; }
+  .hot.bottom { background:rgba(70,130,255,.85); }
+  #partinfo { min-height:42px; margin-top:10px; color:var(--txt); font-size:13.5px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  td { padding:5px 6px; border-top:1px solid var(--line); vertical-align:middle; }
+  td:first-child { width:18px; }
+  .led { width:11px; height:11px; border-radius:50%; background:#2b303b; display:inline-block; }
+  .led.on { background:var(--ok); box-shadow:0 0 7px var(--ok); }
+  .k { color:var(--dim); }
+  .stats { display:grid; grid-template-columns: auto 1fr; gap:3px 12px; font-size:13px; }
+  .stats span:nth-child(odd) { color:var(--dim); }
+  #serial { background:#0b0c0f; border:1px solid var(--line); border-radius:8px; height:110px; overflow:auto; margin:0; padding:8px; font:12px/1.4 ui-monospace,Consolas,monospace; color:#b6f0c8; white-space:pre-wrap; }
+  .legend { font-size:12px; color:var(--dim); margin-top:6px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin:0 4px -1px 10px; }
+  .grid2 { display:grid; gap:14px; }
+  .tog.active { border-color:var(--ok); color:#d9ffe9; }
+  .ledbox { display:inline-flex; align-items:center; gap:5px; color:var(--dim); font-size:12px; }
+  .led.big { width:14px; height:14px; }
+  .led.g.on { background:#3ee07f; box-shadow:0 0 10px #3ee07f; }
+  .led.r.on { background:#ff4b3a; box-shadow:0 0 10px #ff4b3a; }
+  .bat { flex:1; min-width:140px; height:16px; border:1px solid #3c4352; border-radius:4px; overflow:hidden; background:#0f1115; }
+  #bfill { height:100%; width:50%; background:#41d18b; transition:width .3s; }
+  .hot.glow-g { background:#2fd16f; box-shadow:0 0 12px #2fd16f; }
+  .hot.glow-r { background:#ff3b2a; box-shadow:0 0 12px #ff3b2a; }
+</style>
+</head>
+<body>
+<header>
+  <h1>DigiSand board simulator</h1>
+  <span class="sub">Board v2.3. Real ATmega328P emulation at 8 MHz running the compiled firmware (.hex), with a datasheet-based power model</span>
+  <div class="bar">
+    <select id="fw" title="Firmware">
+      <option value="ported" selected>Firmware: ported for this board</option>
+      <option value="original">Firmware: student's original (Nano pins)</option>
+      <option value="custom">Load your own .hex file...</option>
+    </select>
+    <input type="file" id="hexfile" accept=".hex" hidden>
+    <select id="j4" title="How the matrix cable is wired to J4 pins 1, 2, 3">
+      <option value="CLK,CS,DIN" selected>Matrix cable J4 1/2/3: CLK, CS, DIN</option>
+      <option value="DIN,CS,CLK">J4 1/2/3: DIN, CS, CLK</option>
+      <option value="CS,DIN,CLK">J4 1/2/3: CS, DIN, CLK</option>
+      <option value="CS,CLK,DIN">J4 1/2/3: CS, CLK, DIN</option>
+      <option value="DIN,CLK,CS">J4 1/2/3: DIN, CLK, CS</option>
+      <option value="CLK,DIN,CS">J4 1/2/3: CLK, DIN, CS</option>
+    </select>
+    <select id="speed" title="Simulation speed">
+      <option value="1" selected>Speed 1x</option><option value="2">2x</option><option value="4">4x</option>
+    </select>
+    <button id="pause">Pause</button>
+    <button id="reset" title="Like pressing RESET: settings saved in EEPROM are kept">Reset</button>
+    <button id="erase" title="Power on a brand new chip: EEPROM erased">Erase EEPROM</button>
+    <button id="mute">Sound: on</button>
+  </div>
+</header>
+<main>
+  <section class="grid2">
+    <div class="card">
+      <h2>The clock</h2>
+      <canvas id="clock" width="1040" height="1040"></canvas>
+      <div class="row"><label>Rotate</label><input id="roll" type="range" min="-180" max="180" step="1" value="0"><span class="val" id="rollv">0&deg;</span></div>
+      <div class="row"><label>Lay flat</label><input id="lean" type="range" min="0" max="90" step="1" value="0"><span class="val" id="leanv">0&deg;</span></div>
+      <div class="row poses"><label>Quick</label>
+        <button data-roll="0" data-lean="0">Upright</button>
+        <button data-roll="180" data-lean="0">Flip over</button>
+        <button data-roll="-35">Tilt left</button>
+        <button data-roll="35">Tilt right</button>
+        <button data-roll="0" data-lean="85">Lay on table</button>
+      </div>
+      <div class="btns">
+        <button class="hw" data-btn="BTN_UP">Up<small>D2 &middot; &uarr;</small></button>
+        <button class="hw" data-btn="BTN_MENU">Menu<small>D3 &middot; space</small></button>
+        <button class="hw" data-btn="BTN_DOWN">Down<small>D4 &middot; &darr;</small></button>
+      </div>
+      <div class="hint">Drag the clock to rotate it. Click: +/-1 s. Hold: +/-10 s. Menu click: restart. Menu hold: settings.</div>
+    </div>
+  </section>
+  <section class="grid2">
+    <div class="card">
+      <h2>Power</h2>
+      <div class="row"><button id="usb" class="tog">USB-C: unplugged</button><button id="pwr" class="tog active">POWER switch: ON</button>
+        <span class="ledbox"><span class="led big g" id="led-g"></span>D2</span><span class="ledbox"><span class="led big r" id="led-r"></span>D3</span></div>
+      <div class="row"><label>Battery</label><div class="bat"><div id="bfill"></div></div><span class="val" id="bpct">50%</span></div>
+      <div class="row"><label>Set level</label><input id="level" type="range" min="0" max="100" step="1" value="50"></div>
+      <div class="row"><label>Battery</label>
+        <select id="cap"><option value="300">300 mAh</option><option value="500" selected>500 mAh</option><option value="1000">1000 mAh</option></select>
+        <select id="bspeed" title="How fast battery time passes compared to the clock"><option value="1">Battery time 1x</option><option value="60">60x</option><option value="300" selected>300x (1 s = 5 min)</option><option value="1200">1200x (1 s = 20 min)</option></select></div>
+      <div class="stats">
+        <span>Status</span><span id="p-status">-</span>
+        <span>Battery voltage</span><span id="p-vbat">-</span>
+        <span>Battery current</span><span id="p-ibat">-</span>
+        <span>Clock draws</span><span id="p-load">-</span>
+        <span>SYS / 3.3 V rail</span><span id="p-sys">-</span>
+        <span>Processor</span><span id="p-mcu">-</span>
+        <span>Estimate</span><span id="p-time">-</span>
+        <span>Battery sense</span><span id="p-adc">-</span>
+      </div>
+      <div class="legend" style="margin-left:0">Battery screen and empty warning appear when the clock powers on (switch it off and on).</div>
+    </div>
+    <div class="card">
+      <h2>Live signals on the board</h2>
+      <table>
+        <tr><td><span class="led" id="s-clk"></span></td><td>D6 &rarr; J4 pin 1</td><td class="k">Matrix CLK</td></tr>
+        <tr><td><span class="led" id="s-cs"></span></td><td>D7 &rarr; J4 pin 2</td><td class="k">Matrix CS (latch)</td></tr>
+        <tr><td><span class="led" id="s-din"></span></td><td>D8 &rarr; J4 pin 3</td><td class="k">Matrix DIN (data)</td></tr>
+        <tr><td><span class="led" id="s-i2c"></span></td><td>A4/A5 (SDA/SCL)</td><td class="k">LSM6DS3 sensor, I2C 0x6A</td></tr>
+        <tr><td><span class="led" id="s-up"></span></td><td>D2 &larr; J3 pin 1</td><td class="k">Up button</td></tr>
+        <tr><td><span class="led" id="s-menu"></span></td><td>D3 &larr; J3 pin 2</td><td class="k">Menu button</td></tr>
+        <tr><td><span class="led" id="s-down"></span></td><td>D4 &larr; J3 pin 3</td><td class="k">Down button</td></tr>
+        <tr><td><span class="led" id="s-spk"></span></td><td>D9 &rarr; R13 &rarr; J3 pin 4</td><td class="k">Speaker</td></tr>
+      </table>
+      <div class="stats" style="margin-top:12px">
+        <span>Simulated time</span><span id="t-sim">0 s</span>
+        <span>Emulator speed</span><span id="t-rate">-</span>
+        <span>Sensor</span><span id="t-i2c">-</span>
+        <span>LED matrices</span><span id="t-mx">-</span>
+        <span>Speaker</span><span id="t-tone">-</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Serial monitor (USB-C, 115200)</h2>
+      <pre id="serial"></pre>
+    </div>
+    <div class="card">
+      <h2>Your board (v2.3)</h2>
+      <div id="boardview"></div>
+      <div class="legend"><i style="background:rgba(255,90,60,.88)"></i>top side <i style="background:rgba(70,130,255,.85)"></i>bottom side (connectors)</div>
+      <div id="partinfo">Click a part to see what it does.</div>
+    </div>
+  </section>
+</main>
+<script>__SCRIPT__</script>
+</body>
+</html>
