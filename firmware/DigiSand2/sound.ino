@@ -66,6 +66,14 @@ const uint16_t melody5[][2] PROGMEM = {
   {NOTE_B3,200}, {NOTE_B3,200}, {NOTE_B4,300}, {NOTE_DS4,100},{NOTE_FS4,200}, {NOTE_E4,200}, {PAUZA,400}
 };
 
+// Play a short success melody
+const uint16_t melody6[][2] PROGMEM = {
+    {NOTE_C5, 150}, {PAUZA,200}, 
+    {NOTE_E5, 150}, {PAUZA,200},
+    {NOTE_G5, 150}, {PAUZA,200}, 
+    {NOTE_C6, 300}, {PAUZA,200} 
+};
+
 // tick - 10
 const uint16_t sound1[][2] PROGMEM = {
   {NOTE_B5, 10}, {NOTE_B7, 10}

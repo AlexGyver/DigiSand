@@ -72,6 +72,11 @@ class Mini6050 {
         return mag;
     }
 
+    bool isStable() {
+      int16_t threshold = 5; 
+      return abs(getAngle()) < 5;
+    }
+
    private:
     uint16_t tmr;
     int16_t raw[3];

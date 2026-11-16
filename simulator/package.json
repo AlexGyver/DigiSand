@@ -1,0 +1,15 @@
+{
+  "name": "digisand-simulator",
+  "version": "2.4.0",
+  "description": "Browser simulator for the DigiSand sand clock board: runs the real ATmega328P firmware (.hex) on an emulated CPU with the LED matrices, motion sensor, buttons, speaker and battery/charger.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node tests/final.mjs && node tests/test5.mjs && node tests/test6.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "avr8js": "^0.21.1",
+    "esbuild": "^0.28.2"
+  }
+}

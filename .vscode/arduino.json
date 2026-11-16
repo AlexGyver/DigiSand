@@ -1,0 +1,6 @@
+{
+    "configuration": "cpu=atmega328old",
+    "board": "arduino:avr:nano",
+    "sketch": "firmware\\DigiSand2\\DigiSand2.ino",
+    "port": "COM5"
+}
